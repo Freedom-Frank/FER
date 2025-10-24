@@ -18,6 +18,29 @@
 - MindSpore 2.0+
 - 其他依赖见 [requirements.txt](requirements.txt)
 
+### 数据集准备
+
+本项目使用 FER2013 数据集。由于数据集文件较大（287 MB），未包含在仓库中，需要手动下载：
+
+1. **从 Kaggle 下载**：
+   - 访问 [FER2013 数据集页面](https://www.kaggle.com/datasets/msambare/fer2013)
+   - 下载 `fer2013.csv` 文件
+
+2. **放置数据集**：
+   ```bash
+   # 创建数据目录（如果不存在）
+   mkdir -p data/FER2013
+
+   # 将下载的 fer2013.csv 放到此目录下
+   # 最终路径应为: data/FER2013/fer2013.csv
+   ```
+
+3. **验证数据集**：
+   ```bash
+   # 确保文件存在
+   ls data/FER2013/fer2013.csv
+   ```
+
 ### 安装依赖
 
 ```bash
