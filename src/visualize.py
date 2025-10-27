@@ -320,10 +320,11 @@ class FERVisualizer:
                 print("[ERROR] Cannot read frame")
                 break
 
-            # 检测人脸
+            # 检测人脸 - 使用更宽松的参数以提高检测率
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.face_cascade.detectMultiScale(
-                gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
+                gray, scaleFactor=1.05, minNeighbors=3, minSize=(20, 20),
+                flags=cv2.CASCADE_SCALE_IMAGE
             )
 
             # 处理每个人脸
@@ -404,10 +405,11 @@ class FERVisualizer:
 
             frame_count += 1
 
-            # 检测人脸
+            # 检测人脸 - 使用更宽松的参数以提高检测率
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = self.face_cascade.detectMultiScale(
-                gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
+                gray, scaleFactor=1.05, minNeighbors=3, minSize=(20, 20),
+                flags=cv2.CASCADE_SCALE_IMAGE
             )
 
             # 处理每个人脸
@@ -452,10 +454,11 @@ class FERVisualizer:
             print(f"[ERROR] Cannot read image: {image_path}")
             return
 
-        # 检测人脸
+        # 检测人脸 - 使用更宽松的参数以提高检测率
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces = self.face_cascade.detectMultiScale(
-            gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
+            gray, scaleFactor=1.05, minNeighbors=3, minSize=(20, 20),
+            flags=cv2.CASCADE_SCALE_IMAGE
         )
 
         if len(faces) == 0:
@@ -516,10 +519,11 @@ class FERVisualizer:
                 print(f"[ERROR] Cannot read image")
                 continue
 
-            # 检测人脸
+            # 检测人脸 - 使用更宽松的参数以提高检测率
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = self.face_cascade.detectMultiScale(
-                gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
+                gray, scaleFactor=1.05, minNeighbors=3, minSize=(20, 20),
+                flags=cv2.CASCADE_SCALE_IMAGE
             )
 
             if len(faces) == 0:

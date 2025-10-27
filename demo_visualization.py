@@ -97,10 +97,11 @@ def print_menu():
     print("  4. batch   - 批量图片处理与统计")
     print("  5. all     - 运行所有演示 (除了 webcam)")
     print("\n使用示例:")
-    print("  python demo_visualization.py --mode webcam --ckpt checkpoints/best.ckpt")
-    print("  python demo_visualization.py --mode image --ckpt checkpoints/best.ckpt --input test.jpg")
-    print("  python demo_visualization.py --mode video --ckpt checkpoints/best.ckpt --input test.mp4")
-    print("  python demo_visualization.py --mode batch --ckpt checkpoints/best.ckpt --input test_images/")
+    print("  python demo_visualization.py --mode webcam --ckpt checkpoints/fer-5_449.ckpt")
+    print("  python demo_visualization.py --mode image --ckpt checkpoints/fer-5_449.ckpt --input test.jpg")
+    print("  python demo_visualization.py --mode video --ckpt checkpoints/fer-5_449.ckpt --input test.mp4")
+    print("  python demo_visualization.py --mode batch --ckpt checkpoints/fer-5_449.ckpt --input test_images/")
+    print("\n注意: 推荐使用 fer-5_449.ckpt 而不是 best_model.ckpt")
     print()
 
 
@@ -129,9 +130,18 @@ def main():
     # 检查模型文件
     if not os.path.exists(args.ckpt):
         print(f"[ERROR] 模型文件不存在: {args.ckpt}")
-        print("\n请先训练模型或下载预训练模型:")
-        print("  python src/train.py --data_csv data/FER2013/fer2013.csv --epochs 50")
+        print("\n请先训练模型或使用现有的checkpoint:")
+        print("  推荐使用: checkpoints/fer-5_449.ckpt")
+        print("  或训练新模型: python src/train.py --data_csv data/FER2013/fer2013.csv --epochs 50")
         return
+
+    # 检查是否使用了不完整的模型
+    if 'best_model.ckpt' in args.ckpt:
+        file_size = os.path.getsize(args.ckpt) / 1024  # KB
+        if file_size < 500:
+            print(f"[WARNING] best_model.ckpt 文件较小 ({file_size:.0f}KB)，可能未完整训练")
+            print(f"[WARNING] 建议使用 checkpoints/fer-5_449.ckpt (1.3MB) 以获得更好的结果")
+            print()
 
     # 根据模式运行演示
     if args.mode == 'menu':
