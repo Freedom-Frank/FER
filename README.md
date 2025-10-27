@@ -2,6 +2,33 @@
 
 基于 MindSpore 的面部表情识别系统,使用 FER2013 数据集训练深度学习模型识别 7 种面部表情。
 
+---
+
+## ⚡ 快速开始（3 步）
+
+```bash
+# 1. 进入项目目录
+cd /mnt/e/Users/Meng/Projects/VScodeProjects/FER
+
+# 2. 运行快速启动脚本（推荐）
+./quick_start.sh
+
+# 或者直接测试
+./test_now.sh
+
+# 3. 查看结果
+ls output/images/
+```
+
+**快速导航：**
+- [所有文档索引](DOCS_INDEX.md) - 完整文档导航
+- [项目文件结构](PROJECT_STRUCTURE.md) - 文件组织说明
+- [快速命令清单](COPY_PASTE_COMMANDS.txt) - 最常用的命令
+- [可视化快速指南](VISUALIZATION_README.md) - 可视化功能使用
+- [故障排除指南](QUICK_FIX.md) - 常见问题修复
+
+---
+
 ## 项目特点
 
 - **深度残差网络**: 采用 ResNet 架构,包含注意力机制(SENet + 空间注意力)
@@ -61,10 +88,19 @@ python src/train.py --data_csv data/FER2013/fer2013.csv --device_target GPU --ba
 
 ## 文档导航
 
-- [快速开始指南](docs/quickstart.md) - 快速上手教程
-- [环境配置指南](docs/setup.md) - 详细的环境配置步骤
-- [模型优化说明](docs/optimization.md) - 模型优化技术详解
-- [版本更新记录](docs/changelog.md) - 各版本改进历史
+**快速参考：**
+- [快速命令清单](COPY_PASTE_COMMANDS.txt) - 最常用命令（复制粘贴即用）
+- [可视化快速指南](VISUALIZATION_README.md) - 5分钟上手可视化
+- [故障排除](QUICK_FIX.md) - 模型加载错误修复
+- [WSL配置问题](USBIP_FIX.md) - USBip错误说明
+
+**详细文档：**
+- [快速开始](docs/quickstart.md) - 完整入门教程
+- [环境配置](docs/setup.md) - 详细环境配置步骤
+- [可视化指南](docs/visualization_guide.md) - 可视化功能完整说明
+- [模型优化](docs/optimization.md) - 模型优化技术详解
+- [故障排除](docs/troubleshooting.md) - 常见问题解决方案
+- [版本历史](docs/changelog.md) - 更新记录
 
 ## 项目结构
 
@@ -123,7 +159,7 @@ FER/
 
 ### Linux/WSL2 (GPU)
 - NVIDIA GPU (推荐 RTX 3060 或更高)
-- 8GB+ GPU 内存
+- 6GB+ GPU 内存
 - CUDA 11.6+
 - 训练时间: ~1-2分钟/epoch
 
@@ -171,6 +207,31 @@ python src/inference.py \
   --ckpt_path checkpoints/final_model.ckpt \
   --image_path your_image.jpg
 ```
+
+### 可视化功能 (WSL/Linux)
+
+```bash
+# 方法 1: 使用快速启动脚本（推荐）
+./quick_start.sh
+
+# 方法 2: 直接运行命令
+# 实时摄像头表情识别 (按 'q' 退出，按 's' 保存)
+python demo_visualization.py --mode webcam --ckpt checkpoints/best.ckpt
+
+# 处理单张图片（生成标注图和概率图）
+python demo_visualization.py --mode image --ckpt checkpoints/best.ckpt --input test.jpg
+
+# 处理视频文件
+python demo_visualization.py --mode video --ckpt checkpoints/best.ckpt --input test.mp4
+
+# 批量处理图片（生成统计报告）
+python demo_visualization.py --mode batch --ckpt checkpoints/best.ckpt --input test_images/
+
+# GPU 加速
+python demo_visualization.py --mode image --ckpt checkpoints/best.ckpt --input test.jpg --device GPU
+```
+
+详细说明请参考 [完整文档](docs/visualization_guide.md)。
 
 ## 常见问题
 
