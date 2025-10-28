@@ -52,6 +52,16 @@ rank_*/
 data/*
 !data/.gitkeep
 
+# Output directories
+output/
+correct_samples/
+samples_output/
+my_samples/
+test_samples/
+samples_results/
+test_images/*.jpg
+test_images/*.png
+
 # OS
 Thumbs.db
 .DS_Store

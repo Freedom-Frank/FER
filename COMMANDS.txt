@@ -1,0 +1,133 @@
+# FER2013 常用命令速查表
+
+## 数据集路径
+export FER_DATA=/mnt/e/Users/Meng/Datasets/FER2013/fer2013.csv
+
+================================================================================
+训练相关命令
+================================================================================
+
+## 基础训练（CPU）
+python src/train.py --data_csv $FER_DATA --device_target CPU --batch_size 32 --epochs 50
+
+## GPU 训练（推荐）
+python src/train.py --data_csv $FER_DATA --device_target GPU --batch_size 96 --epochs 200 --augment --mixup
+
+## 快速测试训练
+python src/train.py --data_csv $FER_DATA --device_target CPU --batch_size 16 --epochs 5
+
+================================================================================
+评估和推理
+================================================================================
+
+## 评估模型
+python src/eval.py --data_csv $FER_DATA --ckpt_path checkpoints/best_model.ckpt --device_target GPU
+
+## 单图推理
+python src/inference.py --ckpt_path checkpoints/best_model.ckpt --image_path test.jpg --device_target CPU
+
+================================================================================
+样例生成（最常用）
+================================================================================
+
+## 生成正确样例（推荐用于展示）
+python tools/generate_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt --num_samples 3
+
+## GPU 加速
+python tools/generate_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt --device GPU --num_samples 3
+
+## 增加尝试次数（准确率低时）
+python tools/generate_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt --max_attempts 5000 --num_samples 3
+
+## 使用训练集（更多样本）
+python tools/generate_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt --usage Training --num_samples 3
+
+## 生成混合样例（包含正确和错误）
+python tools/generate_samples_simple.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt --num_samples 3
+
+================================================================================
+可视化功能
+================================================================================
+
+## 处理单张图片
+python tools/demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
+
+## 批量处理图片
+python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
+
+## 实时摄像头（需要摄像头）
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
+
+## 处理视频
+python tools/demo_visualization.py --mode video --ckpt checkpoints/best_model.ckpt --input test.mp4
+
+================================================================================
+诊断工具
+================================================================================
+
+## 诊断样例生成问题
+python tools/diagnose_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt
+
+## 检查环境
+python -c "import mindspore; print(mindspore.__version__)"
+python -c "import cv2; print(cv2.__version__)"
+
+================================================================================
+Windows 批处理脚本
+================================================================================
+
+## 训练
+scripts\run_train.bat
+
+## 快速测试
+scripts\quick_test.bat
+
+## 生成样例
+scripts\generate_samples.bat
+
+================================================================================
+WSL2/Linux 脚本
+================================================================================
+
+## WSL2 环境配置
+bash scripts/wsl2_setup.sh
+
+## 可视化测试
+bash scripts/test_visualization.sh
+
+================================================================================
+常见组合命令
+================================================================================
+
+## 完整训练流程
+python src/train.py --data_csv $FER_DATA --device_target GPU --batch_size 96 --epochs 200 --augment --mixup
+python src/eval.py --data_csv $FER_DATA --ckpt_path checkpoints/best_model.ckpt --device_target GPU
+
+## 快速样例生成
+python tools/diagnose_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt
+python tools/generate_correct_samples.py --csv $FER_DATA --ckpt checkpoints/best_model.ckpt --num_samples 3
+
+## 可视化流程
+python tools/demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
+python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
+
+================================================================================
+提示
+================================================================================
+
+1. Windows 用户：将命令中的 $FER_DATA 替换为实际路径
+2. 没有 GPU：将 --device_target GPU 改为 --device_target CPU
+3. 查看完整文档：docs/INDEX.md
+4. 查看帮助：python <script>.py --help
+
+================================================================================
+快速帮助
+================================================================================
+
+训练太慢？     → 使用 GPU、增大 batch_size
+准确率太低？   → 启用 --augment --mixup、增加 epochs
+内存不足？     → 减小 batch_size
+找不到样例？   → 查看 docs/samples/troubleshooting.md
+可视化失败？   → 检查 OpenCV 安装
+
+更多帮助：docs/INDEX.md

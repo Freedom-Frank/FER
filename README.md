@@ -399,6 +399,82 @@ python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --i
 
 详细说明请参考 [可视化指南](docs/visualization_guide.md)。
 
+## 生成样例展示
+
+项目提供多种方式生成"（原图）-（识别结果）"格式的样例展示：
+
+### 方法 1：使用可视化脚本处理图片
+
+```bash
+# 单张图片：生成标注图和概率分布图
+python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
+
+# 批量处理：处理多张图片
+python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
+```
+
+输出文件：
+- `*_annotated.jpg`: 标注后的图片（显示识别结果）
+- `*_result.png`: 概率分布柱状图（7种表情的概率）
+
+### 方法 2：从数据集生成样例
+
+```bash
+# 快速生成样例（推荐）
+python quick_samples.py --csv data/FER2013/fer2013.csv --ckpt checkpoints/best_model.ckpt --num_samples 2
+
+# 使用简化脚本
+python generate_samples_simple.py --csv data/FER2013/fer2013.csv --ckpt checkpoints/best_model.ckpt --output samples_output --num_samples 3
+
+# 使用完整脚本（包含对比表）
+python generate_samples.py --csv data/FER2013/fer2013.csv --ckpt checkpoints/best_model.ckpt --output samples_output --num_samples 3
+```
+
+### 方法 3：使用批处理脚本（Windows）
+
+```bash
+# 运行样例生成脚本
+scripts\generate_samples.bat
+```
+
+### 方法 4：只生成预测正确的样例（推荐用于展示）
+
+```bash
+# 持续尝试直到找到预测正确的样例
+python generate_correct_samples.py \
+    --csv /mnt/e/Users/Meng/Datasets/FER2013/fer2013.csv \
+    --ckpt checkpoints/best_model.ckpt \
+    --num_samples 3
+
+# 使用 GPU 加速
+python generate_correct_samples.py \
+    --csv /mnt/e/Users/Meng/Datasets/FER2013/fer2013.csv \
+    --ckpt checkpoints/best_model.ckpt \
+    --device GPU \
+    --num_samples 3
+```
+
+**特点**：
+- 自动过滤掉预测错误的样例
+- 只保存预测正确且置信度高的样例
+- 适合用于项目展示、演示文稿等场景
+- 详见 [CORRECT_SAMPLES_README.md](CORRECT_SAMPLES_README.md)
+
+### 样例格式说明
+
+每个样例包含：
+1. **左侧**：原始48x48人脸图像 + 真实表情标签
+2. **右侧**：7种表情的概率分布柱状图 + 预测结果和置信度
+
+颜色编码：
+- 绿色标题：预测正确
+- 红色标题：预测错误
+- 红色柱子：真实表情
+- 蓝绿色柱子：其他表情
+- 橙色柱子：错误预测的表情
+
+详细说明见 [SAMPLES_README.md](SAMPLES_README.md)
+
 ## 常见问题 (FAQ)
 
 ### Q: Windows 下如何使用 GPU?
