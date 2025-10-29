@@ -42,6 +42,9 @@ env/
 checkpoints/*.ckpt
 checkpoints/*.meta
 !checkpoints/.gitkeep
+checkpoints_*/
+checkpoints_*/*.ckpt
+checkpoints_*/*.meta
 
 # Training outputs
 *.log

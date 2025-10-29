@@ -1,0 +1,320 @@
+# FER2013 快速命令清单（复制粘贴即用）
+# 详细说明见: COMPLETE_WORKFLOW.md
+
+================================================================================
+零、进入项目目录（首先要做！）
+================================================================================
+
+# Windows CMD
+cd /d E:\Users\Meng\Projects\VScodeProjects\FER
+
+# Windows PowerShell
+cd E:\Users\Meng\Projects\VScodeProjects\FER
+
+# WSL2/Linux
+cd /mnt/e/Users/Meng/Projects/VScodeProjects/FER
+
+# 确认当前目录
+pwd
+
+================================================================================
+一、环境检查
+================================================================================
+
+# 检查Python环境
+python -c "import mindspore; print('MindSpore:', mindspore.__version__)"
+python -c "import cv2; print('OpenCV:', cv2.__version__)"
+
+# 检查数据集（WSL2）
+ls -lh /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv
+
+# 检查数据集（Windows）
+dir E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv
+
+================================================================================
+二、清理旧模型
+================================================================================
+
+# 备份（WSL2）
+mkdir -p checkpoints_backup
+mv checkpoints/best_model.ckpt checkpoints_backup/ 2>/dev/null || true
+
+# 备份（Windows）
+mkdir checkpoints_backup
+move checkpoints\best_model.ckpt checkpoints_backup\
+
+================================================================================
+三、训练新模型（50轮）
+================================================================================
+
+----- GPU训练（WSL2/Linux，推荐，50-100分钟）-----
+
+bash train_50_epochs.sh
+
+# 或手动命令：
+python src/train.py \
+  --data_csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --device_target GPU \
+  --batch_size 96 \
+  --epochs 50 \
+  --lr 7e-4 \
+  --patience 15 \
+  --augment \
+  --mixup \
+  --mixup_alpha 0.4 \
+  --label_smoothing 0.12 \
+  --weight_decay 3e-5 \
+  --save_dir checkpoints_50epoch
+
+
+----- CPU训练（Windows，8-16小时）-----
+
+train_50_epochs.bat
+
+# 或手动命令（CMD）：
+python src/train.py --data_csv E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv --device_target CPU --batch_size 32 --epochs 50 --lr 5e-4 --patience 15 --augment --label_smoothing 0.1 --weight_decay 3e-5 --save_dir checkpoints_50epoch
+
+# 或PowerShell：
+python src/train.py `
+  --data_csv E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv `
+  --device_target CPU `
+  --batch_size 32 `
+  --epochs 50 `
+  --lr 5e-4 `
+  --patience 15 `
+  --augment `
+  --label_smoothing 0.1 `
+  --weight_decay 3e-5 `
+  --save_dir checkpoints_50epoch
+
+
+----- 快速测试（5轮，验证修复）-----
+
+# GPU
+python src/train.py --data_csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv --device_target GPU --batch_size 64 --epochs 5 --lr 5e-4 --save_dir test_training
+
+# CPU
+python src/train.py --data_csv E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv --device_target CPU --batch_size 32 --epochs 5 --lr 5e-4 --save_dir test_training
+
+================================================================================
+四、验证模型
+================================================================================
+
+# 检查文件大小（应该约1.3MB）
+ls -lh checkpoints_50epoch/best_model.ckpt
+
+# 运行验证工具
+python verify_model.py --ckpt checkpoints_50epoch/best_model.ckpt --device CPU
+
+# 测试单张图片推理
+python src/inference.py --ckpt_path checkpoints_50epoch/best_model.ckpt --image_path test.jpg --device_target CPU
+
+================================================================================
+五、生成可视化样例
+================================================================================
+
+----- 基础版（WSL2/Linux）-----
+
+python tools/generate_correct_samples.py \
+  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --num_samples 3 \
+  --output visualization_samples
+
+----- 基础版（Windows）-----
+
+python tools\generate_correct_samples.py --csv E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv --ckpt checkpoints_50epoch\best_model.ckpt --num_samples 3 --output visualization_samples
+
+----- GPU加速版 -----
+
+python tools/generate_correct_samples.py \
+  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --device GPU \
+  --num_samples 3 \
+  --output visualization_samples
+
+----- 增加尝试次数（如果找不到样例）-----
+
+python tools/generate_correct_samples.py \
+  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --num_samples 3 \
+  --max_attempts 5000 \
+  --output visualization_samples
+
+----- 使用训练集（更多样本）-----
+
+python tools/generate_correct_samples.py \
+  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --num_samples 3 \
+  --usage Training \
+  --output visualization_samples
+
+================================================================================
+六、单张图片可视化
+================================================================================
+
+# WSL2/Linux
+python tools/demo_visualization.py \
+  --mode image \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --input test.jpg
+
+# Windows
+python tools\demo_visualization.py --mode image --ckpt checkpoints_50epoch\best_model.ckpt --input test.jpg
+
+# GPU加速
+python tools/demo_visualization.py --mode image --ckpt checkpoints_50epoch/best_model.ckpt --input test.jpg --device GPU
+
+================================================================================
+七、批量图片处理
+================================================================================
+
+# 创建测试目录并放入图片
+mkdir test_images
+# 放入一些jpg/png图片...
+
+# 批量处理
+python tools/demo_visualization.py \
+  --mode batch \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --input test_images/
+
+# 查看结果
+ls output/batch/
+
+================================================================================
+八、实时摄像头识别（需要摄像头）
+================================================================================
+
+python tools/demo_visualization.py \
+  --mode webcam \
+  --ckpt checkpoints_50epoch/best_model.ckpt
+
+# 按 'q' 退出，按 's' 保存当前帧
+
+================================================================================
+九、视频处理
+================================================================================
+
+python tools/demo_visualization.py \
+  --mode video \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --input test_video.mp4
+
+================================================================================
+十、完整工作流程（从头到尾）
+================================================================================
+
+----- GPU完整流程（WSL2/Linux）-----
+
+# 0. 进入项目目录
+cd /mnt/e/Users/Meng/Projects/VScodeProjects/FER
+
+# 1. 环境检查
+python -c "import mindspore; print('MindSpore:', mindspore.__version__)"
+ls /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv
+
+# 2. 清理旧模型
+mkdir -p checkpoints_backup
+mv checkpoints/best_model.ckpt checkpoints_backup/ 2>/dev/null || true
+
+# 3. 训练（50-100分钟）
+bash train_50_epochs.sh
+
+# 4. 验证
+python verify_model.py --ckpt checkpoints_50epoch/best_model.ckpt --device CPU
+
+# 5. 生成样例
+python tools/generate_correct_samples.py \
+  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --device GPU \
+  --num_samples 3 \
+  --output visualization_samples
+
+# 6. 查看结果
+ls -R visualization_samples/
+
+
+----- CPU完整流程（Windows）-----
+
+# 0. 进入项目目录
+cd /d E:\Users\Meng\Projects\VScodeProjects\FER
+
+# 1. 环境检查
+python -c "import mindspore; print('MindSpore:', mindspore.__version__)"
+dir E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv
+
+# 2. 清理旧模型
+mkdir checkpoints_backup
+move checkpoints\best_model.ckpt checkpoints_backup\
+
+# 3. 训练（8-16小时）
+train_50_epochs.bat
+
+# 4. 验证
+python verify_model.py --ckpt checkpoints_50epoch\best_model.ckpt --device CPU
+
+# 5. 生成样例
+python tools\generate_correct_samples.py --csv E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv --ckpt checkpoints_50epoch\best_model.ckpt --num_samples 3 --output visualization_samples
+
+# 6. 查看结果
+dir visualization_samples\ /s
+
+================================================================================
+故障排除
+================================================================================
+
+# 问题1: 内存不足
+# 解决: 减小 batch_size (96→64→32 或 32→16)
+
+# 问题2: 找不到模块
+# 解决: 确保在项目根目录运行命令，或检查 tools/*.py 的 sys.path 设置
+
+# 问题3: 模型预测均匀（14.3%）
+# 解决: 重新训练，确保看到 "Saved best model to..." 消息
+# 检查模型文件大小必须 >1MB
+
+# 问题4: 找不到正确样例
+# 解决: 增加 --max_attempts 5000 或使用 --usage Training
+
+# 问题5: 训练中断
+# 解决: 使用已保存的 checkpoint 如 fer-45_449.ckpt，或重新训练
+
+================================================================================
+快速参考
+================================================================================
+
+# 训练命令模板
+python src/train.py --data_csv <path> --device_target <CPU|GPU> --batch_size <size> --epochs 50 --lr <rate> --patience 15 --augment --save_dir checkpoints_50epoch
+
+# 验证命令模板
+python verify_model.py --ckpt <model_path> --device CPU
+
+# 样例生成模板
+python tools/generate_correct_samples.py --csv <csv_path> --ckpt <model_path> --num_samples 3 --output <output_dir>
+
+# 可视化命令模板
+python tools/demo_visualization.py --mode <image|batch|webcam|video> --ckpt <model_path> --input <input_path>
+
+================================================================================
+重要提醒
+================================================================================
+
+1. 模型文件大小必须约 1.3MB（不是 434KB）
+2. 训练时必须看到 "Saved best model to: xxx/best_model.ckpt" 消息
+3. 验证时概率不应该是均匀的 14.3%
+4. GPU训练约50-100分钟，CPU约8-16小时
+5. 预期准确率：GPU 68-72%，CPU 65-68%
+
+================================================================================
+详细文档
+================================================================================
+
+- 完整工作流程: COMPLETE_WORKFLOW.md
+- 50轮训练指南: TRAINING_GUIDE_50_EPOCHS.md
+- 模型保存修复: MODEL_SAVE_FIX.md
+- 项目说明: README.md

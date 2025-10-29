@@ -76,11 +76,12 @@ class MixupLoss(nn.Cell):
 
 class EvalCallback(Callback):
     """验证集评估回调函数"""
-    def __init__(self, model, val_dataset, eval_per_epoch=1):
+    def __init__(self, model, val_dataset, save_dir='checkpoints', eval_per_epoch=1):
         super(EvalCallback, self).__init__()
         self.model = model
         self.val_dataset = val_dataset
         self.eval_per_epoch = eval_per_epoch
+        self.save_dir = save_dir
         self.best_acc = 0.0
         self.best_epoch = 0
 
@@ -97,6 +98,11 @@ class EvalCallback(Callback):
                 self.best_acc = acc
                 self.best_epoch = cur_epoch
                 print(f"New best accuracy: {self.best_acc:.4f} at epoch {cur_epoch}")
+
+                # 保存最佳模型
+                best_model_path = os.path.join(self.save_dir, 'best_model.ckpt')
+                save_checkpoint(cb_params.train_network, best_model_path)
+                print(f"Saved best model to: {best_model_path}")
 
 
 class EarlyStoppingCallback(Callback):
@@ -289,8 +295,8 @@ def main():
     ckpoint_cb = ModelCheckpoint(prefix='fer', directory=args.save_dir, config=config_ck)
     callbacks.append(ckpoint_cb)
 
-    # 验证集评估回调
-    eval_cb = EvalCallback(model, val_ds, eval_per_epoch=1)
+    # 验证集评估回调（会自动保存最佳模型）
+    eval_cb = EvalCallback(model, val_ds, save_dir=args.save_dir, eval_per_epoch=1)
     callbacks.append(eval_cb)
 
     # 早停回调

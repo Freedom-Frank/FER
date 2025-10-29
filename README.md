@@ -28,7 +28,26 @@
 - **跨平台支持**: Windows CPU 或 Linux/WSL2 GPU 训练
 - **丰富的可视化功能**: 支持实时摄像头、图片、视频和批量处理
 
-## 快速开始
+## 🚀 快速开始
+
+> **新用户？** 查看 **[START_HERE.md](START_HERE.md)** 获取5分钟快速上手指南！
+
+### 一键开始
+
+```bash
+# 1. 进入项目目录
+cd /mnt/e/Users/Meng/Projects/VScodeProjects/FER
+
+# 2. 验证环境
+python -c "import mindspore; print('MindSpore:', mindspore.__version__)"
+
+# 3. 生成可视化样例
+python tools/generate_correct_samples.py \
+  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints/fer-5_449.ckpt \
+  --device GPU \
+  --num_samples 3
+```
 
 ### 环境要求
 
@@ -37,13 +56,7 @@
 - **操作系统**:
   - Windows 10/11 (仅支持 CPU)
   - Linux / WSL2 (支持 CPU 和 GPU)
-- **其他依赖**:
-  - numpy >= 1.21.0
-  - pandas >= 1.3.0
-  - opencv-python >= 4.5.0 (可视化功能需要)
-  - scikit-learn >= 1.0.0
-  - matplotlib >= 3.3.0 (可视化功能需要)
-  - seaborn >= 0.11.0 (可视化功能需要)
+- **其他依赖**: opencv-python, numpy, pandas, matplotlib, seaborn
 
 完整依赖列表见 [requirements.txt](requirements.txt)
 
@@ -147,28 +160,26 @@ python src/train.py \
 - **早停机制**: Patience=30, min_delta=0.001
 - **正则化**: Dropout (0.5, 0.3)、BatchNorm、权重衰减
 
-## 文档导航
+## 📚 文档导航
+
+> **完整文档中心：[docs/README.md](docs/README.md)**
 
 ### 快速参考
-- [命令速查表](COPY_PASTE_COMMANDS.txt) - 最常用命令（复制粘贴即用）
-- [可视化快速参考](docs/quick-reference/visualization.md) - 可视化命令清单
+- **[START_HERE.md](START_HERE.md)** ⭐ 5分钟快速上手
+- **[docs/reference/quick_commands.txt](docs/reference/quick_commands.txt)** - 命令速查表
+- **[docs/guides/final_guide.md](docs/guides/final_guide.md)** - 项目最终指南
 
 ### 核心文档
-- [快速开始](docs/quickstart.md) - 完整入门教程
-- [环境配置](docs/setup.md) - 详细环境配置步骤
-- [入门指南](docs/getting_started.md) - 初学者指南
-- [可视化指南](docs/visualization_guide.md) - 可视化功能完整说明
-- [可视化环境配置](docs/visualization_setup.md) - 可视化依赖安装
+- **[docs/guides/training_guide.md](docs/guides/training_guide.md)** - 50轮训练方案
+- **[docs/guides/complete_workflow.md](docs/guides/complete_workflow.md)** - 完整工作流程
+- **[docs/guides/checkpoint_guide.md](docs/guides/checkpoint_guide.md)** - Checkpoint文件详解
+- **[docs/guides/model_save_fix.md](docs/guides/model_save_fix.md)** - 模型保存问题修复
 
-### 进阶文档
-- [模型优化](docs/optimization.md) - 模型优化技术详解
-- [模型兼容性](docs/model_compatibility.md) - 新旧模型版本说明
-- [故障排除](docs/troubleshooting.md) - 常见问题解决方案
-- [版本历史](docs/changelog.md) - 更新记录
-
-### 示例与参考
-- [可视化示例](examples/visualization_examples.md) - 可视化使用示例
-- [文档索引](docs/README.md) - 完整文档列表
+### 其他文档
+- **[docs/visualization_guide.md](docs/visualization_guide.md)** - 可视化功能完整说明
+- **[docs/troubleshooting.md](docs/troubleshooting.md)** - 常见问题解决
+- **[docs/setup.md](docs/setup.md)** - 环境配置详细步骤
+- **[docs/README.md](docs/README.md)** - 文档中心索引
 
 ## 项目结构
 

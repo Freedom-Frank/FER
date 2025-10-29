@@ -14,7 +14,9 @@ import matplotlib.gridspec as gridspec
 from PIL import Image, ImageDraw, ImageFont
 
 # 添加 src 目录到路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+sys.path.insert(0, os.path.join(project_root, 'src'))
 
 from visualize import FERVisualizer
 

@@ -73,7 +73,9 @@ def process_with_visualization(samples_dir, ckpt_path, device='CPU'):
     print("Processing samples with FER model...")
     print("="*60 + "\n")
 
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    sys.path.insert(0, os.path.join(project_root, 'src'))
     from visualize import FERVisualizer
 
     # 初始化可视化器
