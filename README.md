@@ -376,14 +376,14 @@ Prediction: happy Probability: 0.8523
 
 #### 实时摄像头识别
 ```bash
-python demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
 ```
 - 按 `q` 退出
 - 按 `s` 保存当前帧到 `output/webcam/`
 
 #### 单张图片处理
 ```bash
-python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
+python tools/demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
 ```
 生成两个文件:
 - `*_annotated.jpg`: 带表情标注和置信度的图片
@@ -391,13 +391,13 @@ python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --i
 
 #### 视频文件处理
 ```bash
-python demo_visualization.py --mode video --ckpt checkpoints/best_model.ckpt --input test.mp4
+python tools/demo_visualization.py --mode video --ckpt checkpoints/best_model.ckpt --input test.mp4
 ```
 生成带实时表情识别标注的视频文件,保存到 `output/videos/`
 
 #### 批量图片处理
 ```bash
-python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
+python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
 ```
 处理目录中的所有图片,并生成:
 - 每张图片的标注结果
@@ -406,16 +406,16 @@ python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --i
 **按类别批量处理**（推荐用于分类结果对比）:
 ```bash
 # 处理 sad 类别
-python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/sad
+python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/sad
 
 # 处理 happy 类别
-python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/happy
+python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/happy
 ```
 结果将保存到 `output/batch/{类别名}/` 目录下，每个类别的结果独立存放，方便对比和分析。
 
 #### GPU 加速
 ```bash
-python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg --device GPU
+python tools/demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg --device GPU
 ```
 
 详细说明请参考 [可视化指南](docs/visualization_guide.md)。
@@ -428,10 +428,10 @@ python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --i
 
 ```bash
 # 单张图片：生成标注图和概率分布图
-python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
+python tools/demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg
 
 # 批量处理：处理多张图片
-python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
+python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
 ```
 
 输出文件：
