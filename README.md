@@ -403,6 +403,16 @@ python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --i
 - 每张图片的标注结果
 - `statistics.png`: 所有图片的表情分布统计图
 
+**按类别批量处理**（推荐用于分类结果对比）:
+```bash
+# 处理 sad 类别
+python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/sad
+
+# 处理 happy 类别
+python demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/happy
+```
+结果将保存到 `output/batch/{类别名}/` 目录下，每个类别的结果独立存放，方便对比和分析。
+
 #### GPU 加速
 ```bash
 python demo_visualization.py --mode image --ckpt checkpoints/best_model.ckpt --input test.jpg --device GPU

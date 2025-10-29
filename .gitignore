@@ -57,6 +57,10 @@ data/*
 
 # Output directories
 output/
+output/batch/*/           # Batch processing results by category
+output/images/
+output/videos/
+output/webcam/
 correct_samples/
 samples_output/
 my_samples/
