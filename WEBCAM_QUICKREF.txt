@@ -1,0 +1,69 @@
+================================================================================
+                    实时摄像头表情识别 - 快速参考卡片
+================================================================================
+
+【一键启动】（自动查找模型）
+  Windows:  双击 run_webcam.bat
+  Linux:    bash run_webcam.sh
+
+【基础命令】
+  # 使用 50 epoch 模型（推荐）
+  python tools/demo_visualization.py --mode webcam --ckpt checkpoints_50epoch/best_model.ckpt
+
+  # 使用默认模型
+  python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
+
+【GPU加速】
+  python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt --device GPU
+
+【多摄像头】
+  python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt --camera_id 1
+
+【测试摄像头】
+  python test_camera.py
+
+【交互控制】
+  q - 退出程序
+  s - 保存当前帧
+
+【输出目录】
+  output/webcam/
+
+【功能特性】
+  ✓ 实时人脸检测
+  ✓ 7种表情识别
+  ✓ 置信度显示
+  ✓ 概率条形图
+  ✓ FPS性能监控
+  ✓ 多人脸支持
+
+【表情类别】
+  angry    - 生气    (红色)
+  disgust  - 厌恶    (绿色)
+  fear     - 恐惧    (品红)
+  happy    - 开心    (黄色)
+  sad      - 悲伤    (蓝色)
+  surprise - 惊讶    (橙色)
+  neutral  - 中性    (灰色)
+
+【常见问题】
+  问题: 摄像头无法打开
+  解决: 1. 检查摄像头是否连接
+        2. 关闭其他使用摄像头的程序
+        3. 尝试不同的camera_id
+
+  问题: 无法检测到人脸
+  解决: 1. 确保光线充足
+        2. 正面对着摄像头
+        3. 保持适当距离(50-100cm)
+
+  问题: FPS太低
+  解决: 1. 使用 --device GPU
+        2. 关闭其他程序
+        3. 降低摄像头分辨率
+
+【详细文档】
+  WEBCAM_GUIDE.md - 完整使用指南
+  README.md       - 项目文档
+
+================================================================================

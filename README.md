@@ -28,6 +28,34 @@
 - **跨平台支持**: Windows CPU 或 Linux/WSL2 GPU 训练
 - **丰富的可视化功能**: 支持实时摄像头、图片、视频和批量处理
 
+## 🎥 实时摄像头功能（快速开始）
+
+**一键启动**（自动查找模型）：
+```bash
+# Windows（推荐 - 摄像头直接可用）
+run_webcam.bat
+
+# Linux（原生Linux系统）
+bash run_webcam.sh
+```
+
+**⚠️ WSL 用户注意**：WSL 默认不支持 USB 摄像头访问。
+
+**解决方案**：
+1. **在 Windows 上运行**（推荐）：在 Windows PowerShell 中运行 `run_webcam.bat`
+2. 查看详细配置: [WSL_WEBCAM_SETUP.md](WSL_WEBCAM_SETUP.md)
+
+**手动启动**：
+```bash
+# 使用 50 epoch 训练的模型（推荐）
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints_50epoch/best_model.ckpt
+
+# 或使用其他模型
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
+```
+
+**详细使用指南**: 查看 [WEBCAM_GUIDE.md](WEBCAM_GUIDE.md)
+
 ## 🚀 快速开始
 
 > **新用户？** 查看 **[START_HERE.md](START_HERE.md)** 获取5分钟快速上手指南！
@@ -186,8 +214,14 @@ python src/train.py \
 ```
 FER/
 ├── README.md                       # 项目主文档
+├── MODEL_INFO.md                   # 模型文件说明
+├── WEBCAM_GUIDE.md                 # 实时摄像头使用指南
+├── WEBCAM_QUICKREF.txt             # 摄像头功能快速参考
 ├── requirements.txt                # Python 依赖
-├── demo_visualization.py           # 可视化演示脚本
+├── run_webcam.bat                  # Windows 摄像头一键启动脚本
+├── run_webcam.sh                   # Linux 摄像头一键启动脚本
+├── test_camera.py                  # 摄像头测试工具
+├── test_model.py                   # 模型加载测试工具
 ├── COPY_PASTE_COMMANDS.txt         # 常用命令快速参考
 ├── src/                           # 源代码目录
 │   ├── train.py                   # 训练脚本
@@ -224,7 +258,11 @@ FER/
 ├── data/                          # 数据目录
 │   └── FER2013/
 │       └── fer2013.csv            # 数据集文件(需手动下载)
-├── checkpoints/                   # 模型检查点目录
+├── checkpoints_50epoch/           # 50轮训练模型目录（推荐）
+│   ├── best_model.ckpt            # 最佳模型 (131MB)
+│   ├── final_model.ckpt           # 最终模型 (44MB)
+│   └── fer-*.ckpt                 # 训练检查点
+├── checkpoints/                   # 其他模型检查点目录
 │   ├── best_model.ckpt            # 最佳模型
 │   └── fer-*.ckpt                 # 训练检查点
 ├── output/                        # 输出目录
@@ -374,12 +412,23 @@ Prediction: happy Probability: 0.8523
 
 **使用示例:**
 
-#### 实时摄像头识别
+#### 实时摄像头识别（推荐）
 ```bash
+# 基础使用
 python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
+
+# GPU加速（推荐）
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt --device GPU
+
+# 使用其他摄像头
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt --camera_id 1
 ```
+**功能特性**：
+- 实时人脸检测和表情识别
+- FPS显示
 - 按 `q` 退出
 - 按 `s` 保存当前帧到 `output/webcam/`
+- 右侧显示7种表情的概率条形图
 
 #### 单张图片处理
 ```bash
@@ -396,22 +445,67 @@ python tools/demo_visualization.py --mode video --ckpt checkpoints/best_model.ck
 生成带实时表情识别标注的视频文件,保存到 `output/videos/`
 
 #### 批量图片处理
-```bash
-python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input test_images/
-```
-处理目录中的所有图片,并生成:
-- 每张图片的标注结果
-- `statistics.png`: 所有图片的表情分布统计图
 
-**按类别批量处理**（推荐用于分类结果对比）:
+**单类别处理**：
 ```bash
-# 处理 sad 类别
 python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/sad
-
-# 处理 happy 类别
-python tools/demo_visualization.py --mode batch --ckpt checkpoints/best_model.ckpt --input /path/to/test/happy
 ```
-结果将保存到 `output/batch/{类别名}/` 目录下，每个类别的结果独立存放，方便对比和分析。
+生成该类别的预测分布统计图 `statistics_sad.png`
+
+**多类别批量处理**（推荐 - 一次性处理所有类别）：
+```bash
+python tools/demo_visualization.py \
+  --mode batch \
+  --ckpt checkpoints/best_model.ckpt \
+  --input /path/to/test \
+  --multi_category
+```
+
+自动处理所有类别并生成：
+- `statistics_{category}.png`：每个类别的预测分布统计（带准确率）
+- `accuracy_comparison.png`：各类别准确率对比排名图
+
+**控制台输出示例**：
+```
+Category     Total    Correct  Accuracy   Rank
+----------------------------------------------------------------------
+happy        436      350      80.28%     #1
+neutral      478      370      77.41%     #2
+sad          456      330      72.37%     #3
+angry        450      315      70.00%     #4
+...
+----------------------------------------------------------------------
+AVERAGE                        68.79%
+```
+
+**可选参数**：
+- `--save_images`：保存每张图片的标注结果（默认只保存统计图）
+- `--device GPU`：使用 GPU 加速
+
+详细说明请参考 [多类别批量处理指南](docs/batch_multi_category_guide.md)
+
+#### CSV 批量评估（推荐 - 无漏检问题）
+
+**为什么使用 CSV？** 图片文件方式使用人脸检测器，可能漏检部分样本。CSV 方式直接使用像素数据，**100% 无漏检**，结果更准确。
+
+```bash
+# 评估测试集（推荐）
+python src/batch_eval_csv.py \
+  --csv E:/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --usage PrivateTest \
+  --device GPU
+```
+
+**优势**：
+- ✅ 无人脸检测，100% 无漏检
+- ✅ 处理速度更快
+- ✅ 准确率更真实可靠
+- ✅ 所有样本都会被评估
+
+**输出**：与图片方式相同，生成各类别统计图和准确率对比图
+
+详细说明：[QUICK_START_CSV_BATCH.md](QUICK_START_CSV_BATCH.md)
 
 #### GPU 加速
 ```bash
@@ -551,6 +645,41 @@ pip install opencv-python matplotlib seaborn
    - `pixels`: 48x48 灰度图像的像素值 (空格分隔)
    - `Usage`: 数据用途 (Training/PublicTest/PrivateTest)
 2. 使用相同的训练命令,修改 `--data_csv` 路径即可
+
+### Q: PIL/Pillow 错误 `'ANTIALIAS' not found`?
+**A:** 这是 Pillow 版本兼容性问题:
+```bash
+pip install Pillow==9.5.0
+```
+详见: [FIX_PIL_ERROR.md](FIX_PIL_ERROR.md) | 一键修复: `fix_and_run.bat`
+
+### Q: OpenCV 错误 `cv2.data not found`?
+**A:** 已在 `src/visualize.py` 中修复,使用多路径回退逻辑。如仍有问题:
+```bash
+pip uninstall opencv-python
+pip install opencv-python
+```
+详见: [OPENCV_FIX.md](OPENCV_FIX.md)
+
+### Q: conda 命令在 PowerShell 中不可用?
+**A:** 使用 Anaconda Prompt 代替 PowerShell,或使用自动脚本:
+```bash
+run_webcam_conda.bat
+```
+详见: [START_WEBCAM_WINDOWS.txt](START_WEBCAM_WINDOWS.txt)
+
+### Q: WSL 中摄像头无法打开?
+**A:** WSL 不支持 USB 设备。建议:
+- **方案 1**: 在 Windows 上运行摄像头功能
+- **方案 2**: 使用 WSLg + USB/IP (复杂)
+详见: [WSL_WEBCAM_SETUP.md](WSL_WEBCAM_SETUP.md)
+
+### Q: 如何诊断所有依赖问题?
+**A:** 运行诊断脚本:
+```bash
+python diagnose.py
+```
+会检查 Python、OpenCV、MindSpore、Pillow、摄像头、模型文件等所有依赖。
 
 ## 项目亮点与特性
 

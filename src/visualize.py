@@ -71,8 +71,35 @@ class FERVisualizer:
         os.makedirs(output_dir, exist_ok=True)
 
         # 人脸检测器
-        cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+        # 尝试多种方式加载 Haar Cascade 文件
+        cascade_path = None
+        try:
+            # 方法 1：使用 cv2.data（OpenCV 4.x）
+            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+        except AttributeError:
+            # 方法 2：使用 OpenCV 安装路径
+            cv2_base = os.path.dirname(cv2.__file__)
+            cascade_path = os.path.join(cv2_base, 'data', 'haarcascade_frontalface_default.xml')
+
+            # 方法 3：如果上面的路径不存在，尝试其他常见位置
+            if not os.path.exists(cascade_path):
+                # Windows conda 环境的常见路径
+                import sys
+                possible_paths = [
+                    os.path.join(sys.prefix, 'Library', 'etc', 'haarcascades', 'haarcascade_frontalface_default.xml'),
+                    os.path.join(sys.prefix, 'share', 'opencv4', 'haarcascades', 'haarcascade_frontalface_default.xml'),
+                    os.path.join(cv2_base, '..', 'data', 'haarcascade_frontalface_default.xml'),
+                ]
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        cascade_path = path
+                        break
+
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
+
+        # 验证是否加载成功
+        if self.face_cascade.empty():
+            raise RuntimeError(f"Failed to load face cascade from {cascade_path}")
 
         print(f"[INFO] Visualizer initialized. Output: {output_dir}")
 
@@ -490,13 +517,17 @@ class FERVisualizer:
 
         print(f"[INFO] Image processing completed")
 
-    def process_batch(self, image_dir, pattern='*.jpg'):
+    def process_batch(self, image_dir, pattern='*.jpg', save_images=False):
         """
-        批量处理图片
+        批量处理单个类别的图片
 
         Args:
-            image_dir: 图片目录
+            image_dir: 图片目录（单个类别）
             pattern: 文件匹配模式
+            save_images: 是否保存标注后的图片（默认False，只保存统计图）
+
+        Returns:
+            包含统计信息的字典
         """
         import glob
 
@@ -505,21 +536,26 @@ class FERVisualizer:
 
         if len(image_paths) == 0:
             print("[WARNING] No images found")
-            return
+            return None
+
+        # 从输入目录名提取类别名称（如 sad, happy 等）
+        category_name = os.path.basename(os.path.normpath(image_dir))
 
         # 统计结果
         emotion_counts = {emotion: 0 for emotion in EMOTIONS}
+        total_images = 0
+        correct_predictions = 0
 
         for i, image_path in enumerate(image_paths, 1):
-            print(f"\n[{i}/{len(image_paths)}] Processing: {os.path.basename(image_path)}")
+            if i % 50 == 0 or i == 1:  # 减少打印频率
+                print(f"[{i}/{len(image_paths)}] Processing...")
 
             # 读取图片
             img = cv2.imread(image_path)
             if img is None:
-                print(f"[ERROR] Cannot read image")
                 continue
 
-            # 检测人脸 - 使用更宽松的参数以提高检测率
+            # 检测人脸
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = self.face_cascade.detectMultiScale(
                 gray, scaleFactor=1.05, minNeighbors=3, minSize=(20, 20),
@@ -527,7 +563,6 @@ class FERVisualizer:
             )
 
             if len(faces) == 0:
-                print("[WARNING] No faces detected")
                 continue
 
             # 处理第一个人脸
@@ -536,21 +571,128 @@ class FERVisualizer:
             emotion, probability, probs = self.predict_emotion(face_img)
 
             emotion_counts[emotion] += 1
-            print(f"  Result: {emotion} ({probability:.2%})")
+            total_images += 1
 
-            # 绘制并保存
-            self.draw_prediction(img, x, y, w, h, emotion, probability, probs)
-            basename = os.path.splitext(os.path.basename(image_path))[0]
-            output_path = os.path.join(self.output_dir, f'{basename}_result.jpg')
-            cv2.imwrite(output_path, img)
+            # 计算准确率（真实标签是目录名）
+            if emotion == category_name:
+                correct_predictions += 1
 
-        # 生成统计图
-        self.save_statistics(emotion_counts)
+            # 只在需要时保存图片
+            if save_images:
+                self.draw_prediction(img, x, y, w, h, emotion, probability, probs)
+                basename = os.path.splitext(os.path.basename(image_path))[0]
+                output_path = os.path.join(self.output_dir, f'{basename}_result.jpg')
+                cv2.imwrite(output_path, img)
 
-        print(f"\n[INFO] Batch processing completed")
-        print("\n[STATISTICS]")
+        # 计算准确率
+        accuracy = correct_predictions / total_images if total_images > 0 else 0
+
+        print(f"\n[INFO] Category: {category_name.upper()}")
+        print(f"[INFO] Total images processed: {total_images}")
+        print(f"[INFO] Correct predictions: {correct_predictions}")
+        print(f"[INFO] Accuracy: {accuracy:.2%}")
+        print("\n[STATISTICS] Prediction distribution:")
         for emotion, count in emotion_counts.items():
-            print(f"  {emotion}: {count}")
+            percentage = count / total_images * 100 if total_images > 0 else 0
+            marker = " ← TRUE LABEL" if emotion == category_name else ""
+            print(f"  {emotion}: {count} ({percentage:.1f}%){marker}")
+
+        # 返回统计结果
+        return {
+            'category': category_name,
+            'total': total_images,
+            'correct': correct_predictions,
+            'accuracy': accuracy,
+            'distribution': emotion_counts
+        }
+
+    def process_batch_multi_category(self, parent_dir, pattern='*.jpg', save_images=False):
+        """
+        批量处理多个类别的图片
+
+        Args:
+            parent_dir: 父目录（包含多个类别子目录）
+            pattern: 文件匹配模式
+            save_images: 是否保存标注后的图片
+        """
+        print("\n" + "="*70)
+        print("BATCH PROCESSING - MULTI-CATEGORY MODE")
+        print("="*70)
+
+        # 查找所有子目录（假设每个子目录是一个类别）
+        subdirs = [d for d in os.listdir(parent_dir)
+                   if os.path.isdir(os.path.join(parent_dir, d))]
+
+        # 过滤只保留已知的表情类别
+        categories = [d for d in subdirs if d.lower() in [e.lower() for e in EMOTIONS]]
+
+        if len(categories) == 0:
+            print(f"[ERROR] No valid emotion categories found in {parent_dir}")
+            print(f"[INFO] Expected categories: {', '.join(EMOTIONS)}")
+            return
+
+        print(f"[INFO] Found {len(categories)} categories: {', '.join(categories)}")
+        print(f"[INFO] Save images: {save_images}")
+        print()
+
+        # 处理每个类别
+        all_results = []
+        for i, category in enumerate(categories, 1):
+            print(f"\n{'='*70}")
+            print(f"[{i}/{len(categories)}] Processing category: {category.upper()}")
+            print(f"{'='*70}")
+
+            category_path = os.path.join(parent_dir, category)
+            result = self.process_batch(category_path, pattern, save_images)
+
+            if result:
+                all_results.append(result)
+                # 生成该类别的统计图
+                self.save_statistics_to_dir(
+                    result['distribution'],
+                    self.output_dir,
+                    result['category'],
+                    result['accuracy']
+                )
+
+        # 生成总体统计报告
+        if len(all_results) > 0:
+            self.generate_overall_report(all_results)
+
+        print(f"\n{'='*70}")
+        print("ALL CATEGORIES PROCESSED!")
+        print(f"Results saved to: {self.output_dir}")
+        print(f"{'='*70}\n")
+
+    def generate_overall_report(self, results):
+        """
+        生成总体准确率报告
+
+        Args:
+            results: 所有类别的统计结果列表
+        """
+        print("\n" + "="*70)
+        print("OVERALL ACCURACY REPORT")
+        print("="*70)
+
+        # 按准确率排序
+        sorted_results = sorted(results, key=lambda x: x['accuracy'], reverse=True)
+
+        # 打印表格
+        print(f"\n{'Category':<12} {'Total':<8} {'Correct':<8} {'Accuracy':<10} {'Rank':<6}")
+        print("-" * 70)
+        for i, result in enumerate(sorted_results, 1):
+            print(f"{result['category']:<12} {result['total']:<8} "
+                  f"{result['correct']:<8} {result['accuracy']:<10.2%} #{i}")
+
+        # 计算平均准确率
+        avg_accuracy = sum(r['accuracy'] for r in results) / len(results)
+        print("-" * 70)
+        print(f"{'AVERAGE':<12} {'':<8} {'':<8} {avg_accuracy:<10.2%}")
+        print()
+
+        # 生成准确率对比图
+        self.save_accuracy_comparison(sorted_results)
 
     def save_statistics(self, emotion_counts):
         """
@@ -584,6 +726,128 @@ class FERVisualizer:
         plt.close()
 
         print(f"[SAVE] Statistics saved to {output_path}")
+
+    def save_statistics_to_dir(self, emotion_counts, output_dir, category_name, accuracy=None):
+        """
+        保存统计图表到指定目录
+
+        Args:
+            emotion_counts: 表情统计字典
+            output_dir: 输出目录
+            category_name: 类别名称（用于标题）
+            accuracy: 准确率（可选）
+        """
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+        emotions = list(emotion_counts.keys())
+        counts = list(emotion_counts.values())
+
+        # 设置颜色：真实类别用特殊颜色标记
+        colors = []
+        for e in emotions:
+            if e == category_name:
+                colors.append((0.2, 0.8, 0.2))  # 绿色标记真实类别
+            else:
+                color = EMOTION_COLORS[e]
+                colors.append((color[2]/255, color[1]/255, color[0]/255))
+
+        bars = ax.bar(emotions, counts, color=colors, edgecolor='black', linewidth=1.5)
+
+        # 添加标签
+        ax.set_xlabel('Predicted Emotion', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Count', fontsize=12, fontweight='bold')
+
+        # 标题包含准确率信息
+        title = f'Prediction Distribution - TRUE LABEL: {category_name.upper()}'
+        if accuracy is not None:
+            title += f'\nAccuracy: {accuracy:.2%}'
+        ax.set_title(title, fontsize=14, fontweight='bold')
+
+        # 添加数值标签
+        total = sum(counts)
+        for bar, count in zip(bars, counts):
+            height = bar.get_height()
+            percentage = count / total * 100 if total > 0 else 0
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                   f'{int(count)}\n({percentage:.1f}%)',
+                   ha='center', va='bottom', fontsize=9)
+
+        # 添加图例
+        from matplotlib.patches import Patch
+        legend_elements = [
+            Patch(facecolor=(0.2, 0.8, 0.2), edgecolor='black', label='True Label'),
+            Patch(facecolor=(0.5, 0.5, 0.5), edgecolor='black', label='Other Emotions')
+        ]
+        ax.legend(handles=legend_elements, loc='upper right')
+
+        plt.tight_layout()
+        output_path = os.path.join(output_dir, f'statistics_{category_name}.png')
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+
+        print(f"[SAVE] Statistics saved to {output_path}")
+
+    def save_accuracy_comparison(self, results):
+        """
+        保存准确率对比图
+
+        Args:
+            results: 排序后的结果列表
+        """
+        fig, ax = plt.subplots(figsize=(12, 7))
+
+        categories = [r['category'] for r in results]
+        accuracies = [r['accuracy'] * 100 for r in results]  # 转换为百分比
+
+        # 使用颜色渐变：从绿到红
+        colors = []
+        for acc in accuracies:
+            if acc >= 70:
+                colors.append((0.2, 0.8, 0.2))  # 绿色
+            elif acc >= 50:
+                colors.append((1.0, 0.8, 0.0))  # 黄色
+            else:
+                colors.append((1.0, 0.2, 0.2))  # 红色
+
+        bars = ax.bar(categories, accuracies, color=colors, edgecolor='black', linewidth=2)
+
+        ax.set_xlabel('Emotion Category', fontsize=13, fontweight='bold')
+        ax.set_ylabel('Accuracy (%)', fontsize=13, fontweight='bold')
+        ax.set_title('Accuracy Comparison by Category\n(Ranked from Highest to Lowest)',
+                    fontsize=15, fontweight='bold')
+        ax.set_ylim(0, 100)
+
+        # 添加网格
+        ax.grid(axis='y', alpha=0.3, linestyle='--')
+        ax.set_axisbelow(True)
+
+        # 添加数值标签和排名
+        for i, (bar, acc, result) in enumerate(zip(bars, accuracies, results), 1):
+            height = bar.get_height()
+            # 显示准确率
+            ax.text(bar.get_x() + bar.get_width()/2., height + 1,
+                   f'{acc:.1f}%',
+                   ha='center', va='bottom', fontsize=11, fontweight='bold')
+            # 显示排名
+            ax.text(bar.get_x() + bar.get_width()/2., height - 5,
+                   f'#{i}',
+                   ha='center', va='top', fontsize=10, color='white', fontweight='bold')
+            # 显示样本数
+            ax.text(bar.get_x() + bar.get_width()/2., 3,
+                   f'n={result["total"]}',
+                   ha='center', va='bottom', fontsize=8, color='black')
+
+        # 添加平均线
+        avg_acc = sum(accuracies) / len(accuracies)
+        ax.axhline(y=avg_acc, color='blue', linestyle='--', linewidth=2, label=f'Average: {avg_acc:.1f}%')
+        ax.legend(loc='lower left', fontsize=11)
+
+        plt.tight_layout()
+        output_path = os.path.join(self.output_dir, 'accuracy_comparison.png')
+        plt.savefig(output_path, dpi=150, bbox_inches='tight')
+        plt.close()
+
+        print(f"[SAVE] Accuracy comparison saved to {output_path}")
 
 
 def main():
