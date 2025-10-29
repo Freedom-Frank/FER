@@ -2,6 +2,36 @@
 
 基于 MindSpore 的面部表情识别系统,使用 FER2013 数据集训练深度学习模型识别 7 种面部表情 (angry, disgust, fear, happy, sad, surprise, neutral)。
 
+## 📚 快速导航
+
+### 新手入门
+- **[START_HERE.md](START_HERE.md)** - 5分钟快速上手指南
+- [docs/quickref/READY_TO_RUN.md](docs/quickref/READY_TO_RUN.md) - 摄像头功能准备指南
+- [docs/setup/WINDOWS_SETUP.md](docs/setup/WINDOWS_SETUP.md) - Windows 环境配置
+
+### 功能使用
+- [docs/guides/WEBCAM_GUIDE.md](docs/guides/WEBCAM_GUIDE.md) - 摄像头完整使用指南
+- [docs/guides/QUICK_START_BATCH.md](docs/guides/QUICK_START_BATCH.md) - 批量处理指南
+- [docs/quickref/WEBCAM_QUICKREF.txt](docs/quickref/WEBCAM_QUICKREF.txt) - 摄像头快速参考
+
+### 问题解决
+- [docs/troubleshooting/FIX_PIL_ERROR.md](docs/troubleshooting/FIX_PIL_ERROR.md) - PIL/Pillow 错误修复
+- [docs/troubleshooting/OPENCV_FIX.md](docs/troubleshooting/OPENCV_FIX.md) - OpenCV 错误修复
+- [docs/setup/WSL_WEBCAM_SETUP.md](docs/setup/WSL_WEBCAM_SETUP.md) - WSL 摄像头配置
+
+### 快速命令
+```bash
+# 启动摄像头（Windows）
+run_webcam.bat
+
+# 启动摄像头（Linux）
+bash run_webcam.sh
+
+# 系统诊断
+python diagnose.bat  # Windows
+python scripts/tests/diagnose.py  # 直接调用
+```
+
 ## 目录
 
 - [项目特点](#项目特点)
@@ -43,7 +73,7 @@ bash run_webcam.sh
 
 **解决方案**：
 1. **在 Windows 上运行**（推荐）：在 Windows PowerShell 中运行 `run_webcam.bat`
-2. 查看详细配置: [WSL_WEBCAM_SETUP.md](WSL_WEBCAM_SETUP.md)
+2. 查看详细配置: [docs/setup/WSL_WEBCAM_SETUP.md](docs/setup/WSL_WEBCAM_SETUP.md)
 
 **手动启动**：
 ```bash
@@ -54,7 +84,7 @@ python tools/demo_visualization.py --mode webcam --ckpt checkpoints_50epoch/best
 python tools/demo_visualization.py --mode webcam --ckpt checkpoints/best_model.ckpt
 ```
 
-**详细使用指南**: 查看 [WEBCAM_GUIDE.md](WEBCAM_GUIDE.md)
+**详细使用指南**: 查看 [docs/guides/WEBCAM_GUIDE.md](docs/guides/WEBCAM_GUIDE.md)
 
 ## 🚀 快速开始
 
@@ -505,7 +535,7 @@ python src/batch_eval_csv.py \
 
 **输出**：与图片方式相同，生成各类别统计图和准确率对比图
 
-详细说明：[QUICK_START_CSV_BATCH.md](QUICK_START_CSV_BATCH.md)
+详细说明：[docs/guides/QUICK_START_CSV_BATCH.md](docs/guides/QUICK_START_CSV_BATCH.md)
 
 #### GPU 加速
 ```bash
@@ -651,7 +681,7 @@ pip install opencv-python matplotlib seaborn
 ```bash
 pip install Pillow==9.5.0
 ```
-详见: [FIX_PIL_ERROR.md](FIX_PIL_ERROR.md) | 一键修复: `fix_and_run.bat`
+详见: [docs/troubleshooting/FIX_PIL_ERROR.md](docs/troubleshooting/FIX_PIL_ERROR.md) | 一键修复: `scripts/utils/fix_and_run.bat`
 
 ### Q: OpenCV 错误 `cv2.data not found`?
 **A:** 已在 `src/visualize.py` 中修复,使用多路径回退逻辑。如仍有问题:
@@ -659,25 +689,31 @@ pip install Pillow==9.5.0
 pip uninstall opencv-python
 pip install opencv-python
 ```
-详见: [OPENCV_FIX.md](OPENCV_FIX.md)
+详见: [docs/troubleshooting/OPENCV_FIX.md](docs/troubleshooting/OPENCV_FIX.md)
 
 ### Q: conda 命令在 PowerShell 中不可用?
 **A:** 使用 Anaconda Prompt 代替 PowerShell,或使用自动脚本:
 ```bash
-run_webcam_conda.bat
+scripts/webcam/run_webcam_conda.bat
+# 或根目录快捷方式
+run_webcam.bat
 ```
-详见: [START_WEBCAM_WINDOWS.txt](START_WEBCAM_WINDOWS.txt)
+详见: [docs/quickref/START_WEBCAM_WINDOWS.txt](docs/quickref/START_WEBCAM_WINDOWS.txt)
 
 ### Q: WSL 中摄像头无法打开?
 **A:** WSL 不支持 USB 设备。建议:
 - **方案 1**: 在 Windows 上运行摄像头功能
 - **方案 2**: 使用 WSLg + USB/IP (复杂)
-详见: [WSL_WEBCAM_SETUP.md](WSL_WEBCAM_SETUP.md)
+详见: [docs/setup/WSL_WEBCAM_SETUP.md](docs/setup/WSL_WEBCAM_SETUP.md)
 
 ### Q: 如何诊断所有依赖问题?
 **A:** 运行诊断脚本:
 ```bash
-python diagnose.py
+# Windows 便捷方式
+python diagnose.bat
+
+# 或直接调用
+python scripts/tests/diagnose.py
 ```
 会检查 Python、OpenCV、MindSpore、Pillow、摄像头、模型文件等所有依赖。
 

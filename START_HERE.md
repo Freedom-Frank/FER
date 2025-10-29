@@ -1,171 +1,216 @@
-# 🚀 快速开始 - 从这里开始！
+# 🚀 FER2013 项目 - 5分钟快速开始
 
-## 第一步：进入项目目录
+欢迎使用 FER2013 面部表情识别项目！这是一个快速入门指南,帮助你在 5 分钟内开始使用。
 
-**这是最重要的一步！所有命令都必须在项目目录下运行。**
+## 📋 你想做什么？
 
-### Windows CMD
+### 🎥 1. 我想立即试用摄像头功能
+
+**最快方式**（Windows）：
 ```bash
-cd /d E:\Users\Meng\Projects\VScodeProjects\FER
+run_webcam.bat
 ```
 
-### Windows PowerShell
+**手动方式**：
 ```bash
-cd E:\Users\Meng\Projects\VScodeProjects\FER
+# 1. 激活环境（如果使用 conda）
+conda activate fer
+
+# 2. 运行摄像头
+python tools/demo_visualization.py --mode webcam --ckpt checkpoints_50epoch/best_model.ckpt
 ```
 
-### WSL2/Linux
-```bash
-cd /mnt/e/Users/Meng/Projects/VScodeProjects/FER
-```
+**操作指南**：
+- 按 `q` 退出
+- 按 `s` 保存截图
 
-### 确认位置
-```bash
-pwd
-# 应该输出项目路径
-```
+**遇到问题？**
+- WSL 用户：[docs/setup/WSL_WEBCAM_SETUP.md](docs/setup/WSL_WEBCAM_SETUP.md)
+- PIL 错误：[docs/troubleshooting/FIX_PIL_ERROR.md](docs/troubleshooting/FIX_PIL_ERROR.md)
+- OpenCV 错误：[docs/troubleshooting/OPENCV_FIX.md](docs/troubleshooting/OPENCV_FIX.md)
+- 综合诊断：`python diagnose.bat`
+
+**详细指南**：[docs/guides/WEBCAM_GUIDE.md](docs/guides/WEBCAM_GUIDE.md)
 
 ---
 
-## 第二步：检查环境
+### 🖼️ 2. 我想测试单张图片
 
-```bash
-# 检查 MindSpore
-python -c "import mindspore; print('MindSpore:', mindspore.__version__)"
-
-# 检查数据集存在
-# WSL2:
-ls /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv
-
-# Windows:
-dir E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv
-```
-
-如果报错，查看 [环境配置文档](docs/setup.md)
-
----
-
-## 第三步：训练模型
-
-### 🔥 GPU用户（推荐，50-100分钟）
-
-```bash
-bash train_50_epochs.sh
-```
-
-### 💻 CPU用户（8-16小时）
-
-```bash
-# Windows: 双击运行
-train_50_epochs.bat
-
-# 或在CMD中运行：
-train_50_epochs.bat
-```
-
----
-
-## 第四步：验证模型
-
-训练完成后：
-
-```bash
-# 检查文件大小（应该约1.3MB）
-ls -lh checkpoints_50epoch/best_model.ckpt
-
-# 运行验证工具
-python verify_model.py --ckpt checkpoints_50epoch/best_model.ckpt
-```
-
-**期望看到**：
-- ✓ File size: 1.3 MB
-- ✓ Model produces non-uniform predictions
-- ✓ VERDICT: Model appears to be WORKING!
-
----
-
-## 第五步：生成可视化
-
-### WSL2/Linux (GPU)
-```bash
-python tools/generate_correct_samples.py \
-  --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv \
-  --ckpt checkpoints_50epoch/best_model.ckpt \
-  --device GPU \
-  --num_samples 3
-```
-
-### Windows (CPU)
-```bash
-python tools\generate_correct_samples.py --csv E:\Users\Meng\Datasets\FER2013CSV\fer2013.csv --ckpt checkpoints_50epoch\best_model.ckpt --num_samples 3
-```
-
-**结果**：在 `visualization_samples/` 或 `correct_samples/` 目录查看
-
----
-
-## 🎉 完成！
-
-现在你应该有：
-- ✓ 训练好的模型（1.3MB）
-- ✓ 可视化样例展示
-- ✓ 正常的概率分布（不是14.3%均匀分布）
-
----
-
-## 📚 更多功能
-
-### 单张图片可视化
 ```bash
 python tools/demo_visualization.py --mode image --ckpt checkpoints_50epoch/best_model.ckpt --input test.jpg
 ```
 
-### 批量处理
+结果保存在 `output/image/` 目录。
+
+---
+
+### 📁 3. 我想批量处理图片
+
+**方式 1：处理目录**
 ```bash
 python tools/demo_visualization.py --mode batch --ckpt checkpoints_50epoch/best_model.ckpt --input test_images/
 ```
 
-### 实时摄像头
+**方式 2：CSV 批量评估**
 ```bash
-python tools/demo_visualization.py --mode webcam --ckpt checkpoints_50epoch/best_model.ckpt
+python src/batch_eval_csv.py \
+  --csv /path/to/fer2013.csv \
+  --ckpt checkpoints_50epoch/best_model.ckpt \
+  --device CPU
 ```
+
+详细说明：[docs/guides/QUICK_START_BATCH.md](docs/guides/QUICK_START_BATCH.md)
+
+---
+
+### 🎓 4. 我想训练模型
+
+```bash
+python train.py \
+  --data_csv /path/to/fer2013.csv \
+  --epochs 50 \
+  --batch_size 64 \
+  --lr 7e-4 \
+  --device_target GPU \
+  --augment \
+  --mixup
+```
+
+完整训练指南：查看 [README.md](README.md) 的"核心脚本说明"部分
+
+---
+
+### 🎬 5. 我想处理视频文件
+
+```bash
+python tools/demo_visualization.py --mode video --ckpt checkpoints_50epoch/best_model.ckpt --input video.mp4
+```
+
+---
+
+## 🛠️ 常用命令速查
+
+| 功能 | 命令 |
+|------|------|
+| 摄像头（快捷） | `run_webcam.bat` |
+| 摄像头（手动） | `python tools/demo_visualization.py --mode webcam --ckpt <模型>` |
+| 单张图片 | `python tools/demo_visualization.py --mode image --ckpt <模型> --input <图片>` |
+| 批量处理 | `python tools/demo_visualization.py --mode batch --ckpt <模型> --input <目录>` |
+| 视频处理 | `python tools/demo_visualization.py --mode video --ckpt <模型> --input <视频>` |
+| 系统诊断 | `python diagnose.bat` 或 `python scripts/tests/diagnose.py` |
+| 摄像头测试 | `python scripts/tests/test_camera.py` |
+| 模型测试 | `python scripts/tests/test_model.py` |
+
+---
+
+## 📚 文档导航
+
+### 新手必读
+- **[README.md](README.md)** - 完整项目文档
+- [docs/quickref/READY_TO_RUN.md](docs/quickref/READY_TO_RUN.md) - 摄像头功能准备指南
+- [docs/setup/WINDOWS_SETUP.md](docs/setup/WINDOWS_SETUP.md) - Windows 环境配置
+
+### 使用指南
+- [docs/guides/WEBCAM_GUIDE.md](docs/guides/WEBCAM_GUIDE.md) - 摄像头完整使用指南
+- [docs/guides/QUICK_START_BATCH.md](docs/guides/QUICK_START_BATCH.md) - 批量处理指南
+- [docs/guides/QUICK_START_CSV_BATCH.md](docs/guides/QUICK_START_CSV_BATCH.md) - CSV 批量评估
+
+### 问题解决
+- [docs/troubleshooting/FIX_PIL_ERROR.md](docs/troubleshooting/FIX_PIL_ERROR.md) - PIL/Pillow 错误
+- [docs/troubleshooting/OPENCV_FIX.md](docs/troubleshooting/OPENCV_FIX.md) - OpenCV 错误
+- [docs/troubleshooting/QUICK_FIX_WSL_WEBCAM.md](docs/troubleshooting/QUICK_FIX_WSL_WEBCAM.md) - WSL 快速修复
+- [docs/setup/WSL_WEBCAM_SETUP.md](docs/setup/WSL_WEBCAM_SETUP.md) - WSL 完整配置
+
+### 快速参考
+- [docs/quickref/WEBCAM_QUICKREF.txt](docs/quickref/WEBCAM_QUICKREF.txt) - 摄像头快速参考卡
+- [docs/quickref/START_WEBCAM_WINDOWS.txt](docs/quickref/START_WEBCAM_WINDOWS.txt) - Windows 启动指南
+- [docs/quickref/FINAL_STATUS.txt](docs/quickref/FINAL_STATUS.txt) - 项目最终状态报告
+
+### 技术参考
+- [docs/reference/MODEL_INFO.md](docs/reference/MODEL_INFO.md) - 模型详细信息
+- [docs/reference/WEBCAM_IMPLEMENTATION_SUMMARY.md](docs/reference/WEBCAM_IMPLEMENTATION_SUMMARY.md) - 实现细节
+- [docs/reference/UPDATES_SUMMARY.md](docs/reference/UPDATES_SUMMARY.md) - 更新历史
+
+---
+
+## 🎯 表情类别
+
+模型可识别 7 种表情：
+1. 😠 **angry** (生气)
+2. 🤢 **disgust** (厌恶)
+3. 😨 **fear** (恐惧)
+4. 😊 **happy** (高兴)
+5. 😢 **sad** (悲伤)
+6. 😮 **surprise** (惊讶)
+7. 😐 **neutral** (中性)
+
+---
+
+## 💡 快速提示
+
+### 模型位置
+项目包含两个模型目录：
+- `checkpoints/` - 5 轮训练的模型
+- `checkpoints_50epoch/` - 50 轮训练的模型（**推荐使用**）
+
+### 输出位置
+所有结果保存在 `output/` 目录：
+- `output/webcam/` - 摄像头截图
+- `output/image/` - 单图处理结果
+- `output/batch/` - 批量处理结果
+- `output/video/` - 视频处理结果
+
+### 性能优化
+- **CPU 模式**（默认）：`--device CPU` 或 `--device_target CPU`
+- **GPU 模式**（需 NVIDIA GPU + CUDA）：`--device GPU` 或 `--device_target GPU`
 
 ---
 
 ## ❓ 遇到问题？
 
-### 问题1: 找不到模块
-**确保你在项目目录下！**重新执行第一步。
+### 常见错误快速修复
 
-### 问题2: 模型概率是14.3%
-说明模型没训练好，检查：
-- 模型文件大小是否 >1MB？
-- 训练时是否看到 "Saved best model to..." 消息？
-
-### 问题3: 内存不足
-减小 batch_size：
-- 编辑 `train_50_epochs.sh` 或 `train_50_epochs.bat`
-- 将 `batch_size` 从 96 改为 64 或 32
-
----
-
-## 📖 详细文档
-
-- **完整工作流程**: [COMPLETE_WORKFLOW.md](COMPLETE_WORKFLOW.md)
-- **快速命令清单**: [QUICK_COMMANDS.txt](QUICK_COMMANDS.txt)
-- **50轮训练指南**: [TRAINING_GUIDE_50_EPOCHS.md](TRAINING_GUIDE_50_EPOCHS.md)
-- **模型保存修复**: [MODEL_SAVE_FIX.md](MODEL_SAVE_FIX.md)
-
----
-
-## 🆘 快速帮助
-
+**1. PIL/Pillow 错误**
 ```bash
-# 完整流程（一次性运行所有命令）
-cd /mnt/e/Users/Meng/Projects/VScodeProjects/FER
-bash train_50_epochs.sh
-python verify_model.py --ckpt checkpoints_50epoch/best_model.ckpt
-python tools/generate_correct_samples.py --csv /mnt/e/Users/Meng/Datasets/FER2013CSV/fer2013.csv --ckpt checkpoints_50epoch/best_model.ckpt --device GPU --num_samples 3
+pip install Pillow==9.5.0
 ```
 
-**就这么简单！** 🎊
+**2. OpenCV 错误**
+```bash
+pip uninstall opencv-python
+pip install opencv-python
+```
+
+**3. WSL 摄像头无法打开**
+→ 在 Windows 上运行，不要在 WSL 中运行
+
+**4. conda 命令不可用**
+→ 使用 Anaconda Prompt 而不是普通 PowerShell
+
+**5. 综合诊断**
+```bash
+python diagnose.bat  # Windows
+python scripts/tests/diagnose.py  # 直接调用
+```
+
+---
+
+## 📞 获取帮助
+
+1. **查看详细文档**：[README.md](README.md)
+2. **常见问题**：README.md 的"常见问题 FAQ"部分
+3. **运行诊断**：`python diagnose.bat` 获取系统状态
+4. **查看项目结构**：[PROJECT_RESTRUCTURE_PLAN.md](PROJECT_RESTRUCTURE_PLAN.md)
+
+---
+
+## 🎉 开始使用
+
+现在你已经掌握了基础知识，选择上面的任一功能开始体验吧！
+
+**推荐从摄像头功能开始**：
+```bash
+run_webcam.bat
+```
+
+祝使用愉快！ 🚀

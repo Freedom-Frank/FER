@@ -56,19 +56,48 @@ def demo_video(ckpt_path, video_path, device='CPU'):
     print("\n处理后的视频已保存到 output/videos/ 目录")
 
 
-def demo_batch(ckpt_path, image_dir, device='CPU'):
-    """演示批量图片处理"""
-    print("\n" + "="*60)
-    print("演示：批量图片处理与统计")
-    print("="*60)
-    print(f"输入目录: {image_dir}")
-    print()
+def demo_batch(ckpt_path, image_dir, device='CPU', save_images=False, multi_category=False):
+    """演示批量图片处理
 
+    Args:
+        ckpt_path: 模型检查点路径
+        image_dir: 输入目录
+        device: 计算设备
+        save_images: 是否保存标注后的图片
+        multi_category: 是否为多类别模式（父目录包含多个类别子目录）
+    """
     visualizer = FERVisualizer(ckpt_path, device_target=device, output_dir='output/batch')
-    visualizer.process_batch(image_dir, pattern='*.jpg')
 
-    print("\n批量处理结果已保存到 output/batch/ 目录")
-    print("查看 output/batch/statistics.png 了解表情分布统计")
+    if multi_category:
+        # 多类别批处理模式
+        print("\n" + "="*60)
+        print("演示：多类别批量处理与统计")
+        print("="*60)
+        print(f"输入父目录: {image_dir}")
+        print(f"保存图片: {save_images}")
+        print()
+
+        visualizer.process_batch_multi_category(image_dir, pattern='*.jpg', save_images=save_images)
+
+        print(f"\n批量处理结果已保存到 output/batch/ 目录")
+        print("查看以下文件:")
+        print("  - statistics_<category>.png: 每个类别的预测分布统计")
+        print("  - accuracy_comparison.png: 各类别准确率对比排名")
+    else:
+        # 单类别批处理模式
+        print("\n" + "="*60)
+        print("演示：单类别批量处理与统计")
+        print("="*60)
+        print(f"输入目录: {image_dir}")
+        print(f"保存图片: {save_images}")
+        print()
+
+        result = visualizer.process_batch(image_dir, pattern='*.jpg', save_images=save_images)
+
+        if result:
+            category_name = result['category']
+            print(f"\n批量处理结果已保存到 output/batch/ 目录")
+            print(f"查看 output/batch/statistics_{category_name}.png 了解表情分布统计")
 
 
 def create_test_structure():
@@ -123,6 +152,10 @@ def main():
     parser.add_argument('--device', type=str, default='CPU',
                        choices=['CPU', 'GPU'],
                        help='计算设备')
+    parser.add_argument('--save_images', action='store_true',
+                       help='保存标注后的图片 (batch模式)')
+    parser.add_argument('--multi_category', action='store_true',
+                       help='多类别模式：输入目录包含多个类别子目录 (batch模式)')
 
     args = parser.parse_args()
 
@@ -177,7 +210,9 @@ def main():
         if not os.path.isdir(args.input):
             print(f"[ERROR] 目录不存在: {args.input}")
             return
-        demo_batch(args.ckpt, args.input, args.device)
+        demo_batch(args.ckpt, args.input, args.device,
+                  save_images=args.save_images,
+                  multi_category=args.multi_category)
 
     elif args.mode == 'all':
         print("\n运行所有演示 (除了 webcam)...")
